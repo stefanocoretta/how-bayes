@@ -1,0 +1,249 @@
+---
+title: "Presentation Ninja"
+subtitle: "⚔<br/>with xaringan"
+author: "Yihui Xie"
+institute: "RStudio, PBC"
+date: "2016/12/12 (updated: `r Sys.Date()`)"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css:
+      - default
+      - ipa-fonts.css
+      - custom.css
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      beforeInit: "macros.js"
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = here::here())
+library(tidyverse)
+library(ggeffects)
+library(lme4)
+library(brms)
+options(htmltools.dir.version = FALSE)
+xaringanExtra::use_xaringan_extra(c("panelset", "tachyons"))
+```
+
+```{r mald, echo=FALSE}
+mald <- readRDS("./data/mald.rds")
+```
+
+# All about the Bayes
+
+- Within the NHST (Frequentist) framework, the main analysis output is:
+
+  - **Point estimates** of predictors' parameters (with standard error).
+  - **P-values**.
+
+- Within the Bayesian framework, the main analysis output is:
+
+  - **Probability distributions** of predictors' parameters.
+
+---
+
+# All about the Bayes
+
+Images of NHST vs Bayes output.
+
+---
+
+# An example
+
+[Massive Auditory Lexical Decision](https://aphl.artsrn.ualberta.ca/?page_id=827) (Tucker et al. 2019):
+
+- **MALD data set**: 521 subjects, RTs and accuracy.
+
+- Subset of MALD: 30 subjects, 100 observations each.
+
+--
+
+```{r mald-print}
+mald
+```
+
+
+---
+
+# A frequentist linear model
+
+```{r lm-1}
+lm_1 <- lmer(
+  log(RT) ~
+    PhonLev +
+    IsWord +
+    PhonLev:IsWord +
+    (1 | Subject),
+  data = mald
+)
+```
+
+---
+
+# A frequentist linear model
+
+```{r lm-1-sum}
+summary(lm_1)
+```
+
+---
+
+# A frequentist linear model
+
+```{r lm-1-pred}
+ggpredict(lm_1, terms = c("PhonLev", "IsWord")) %>%
+  plot()
+```
+
+---
+
+# Increase model complexity
+
+**Try it yourself!** Does it work?
+
+```{r lm-2, eval=FALSE}
+lm_2 <- lmer(
+  log(RT) ~
+    PhonLev +
+    IsWord +
+    PhonLev:IsWord +
+    (PhonLev + IsWord | Subject),
+  data = mald
+)
+```
+
+--
+
+```{r lm-2-run, echo=FALSE}
+lm_2 <- lmer(
+  log(RT) ~
+    PhonLev +
+    IsWord +
+    PhonLev:IsWord +
+    (PhonLev + IsWord | Subject),
+  data = mald
+)
+```
+
+---
+
+# A Bayesian linear model
+
+```{r brm-1, eval=FALSE}
+brm_1 <- brm(
+  RT ~
+    PhonLev +
+    IsWord +
+    PhonLev:IsWord +
+    (PhonLev + IsWord | Subject),
+  data = mald,
+  # Let's use a lognormal fam, rather than log the RT values
+  family = lognormal()
+)
+```
+
+```{r brm-1-run, echo=FALSE}
+brm_1 <- brm(
+  RT ~
+    PhonLev +
+    IsWord +
+    PhonLev:IsWord +
+    (PhonLev + IsWord | Subject),
+  data = mald,
+  # Let's use a lognormal fam, rather than log the RT values
+  family = lognormal(),
+  # Technical stuff
+  backend = "cmdstanr",
+  cores = 4,
+  threads = threading(2),
+  file = "data/rds/brm_1"
+)
+```
+
+---
+
+# A Bayesian linear model
+
+```{r brm-1-sum}
+brm_1
+```
+
+---
+
+# A Bayesian linear model
+
+```{r brm-1-cond}
+conditional_effects(brm_1, effects = "PhonLev:IsWord")
+```
+
+---
+
+# Let's start small
+
+**Try it yourself!**
+
+```{r brm-2}
+brm_2 <- brm(
+  RT ~
+    IsWord,
+  data = mald,
+  family = lognormal(),
+  # Save model output to file
+  file = "./data/rds/brm_2.rds"
+)
+```
+
+---
+
+class: center middle reverse
+
+# [MCMC what?](https://chi-feng.github.io/mcmc-demo/app.html)
+
+???
+
+More on MCMC: http://elevanth.org/blog/2017/11/28/build-a-better-markov-chain/
+
+---
+
+# Let's start small
+
+```{r brm-2-explain, eval=FALSE}
+brm_2 <- brm(
+  RT ~
+    IsWord,
+  data = mald,
+  # Probability distribution of the OUTCOME
+  family = lognormal(),
+  # TECHNICAL STUFF
+  # Save model output to file
+  file = "./data/rds/brm_2.rds"
+  # Number of chains
+  chains = 4,
+  # Number of iterations per chain
+  iter = 2000,
+  # Number of cores to use (each chain is run on each core)
+  cores = 4
+)
+```
+
+- `chains`: Number of MCMC chains to be run.
+
+- `iter`: Number of iterations per MCMC chain.
+
+- `cores`: Number of cores to use for running the MCMC chains.
+
+  - You can find out how many cores your laptop has with `parallel::detectCores()`
+
+---
+
+# Let's start small
+
+```{r brm-2-sum}
+brm_2
+```
+

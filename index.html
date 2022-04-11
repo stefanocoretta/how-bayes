@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Presentation Ninja</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Yihui Xie" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/tachyons/tachyons.min.css" rel="stylesheet" />
+    <link href="libs/panelset/panelset.css" rel="stylesheet" />
+    <script src="libs/panelset/panelset.js"></script>
+    <link rel="stylesheet" href="ipa-fonts.css" type="text/css" />
+    <link rel="stylesheet" href="custom.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Presentation Ninja
+## ⚔<br/>with xaringan
+### Yihui Xie
+### RStudio, PBC
+### 2016/12/12 (updated: 2022-04-11)
+
+---
+
+
+
+
+
+
+
+# All about the Bayes
+
+- Within the NHST (Frequentist) framework, the main analysis output is:
+
+  - **Point estimates** of predictors' parameters (with standard error).
+  - **P-values**.
+
+- Within the Bayesian framework, the main analysis output is:
+
+  - **Probability distributions** of predictors' parameters.
+
+---
+
+# All about the Bayes
+
+Images of NHST vs Bayes output.
+
+---
+
+# An example
+
+[Massive Auditory Lexical Decision](https://aphl.artsrn.ualberta.ca/?page_id=827) (Tucker et al. 2019):
+
+- **MALD data set**: 521 subjects, RTs and accuracy.
+
+- Subset of MALD: 30 subjects, 100 observations each.
+
+--
+
+
+```r
+mald
+```
+
+```
+## # A tibble: 3,000 × 7
+##    Subject Item         IsWord PhonLev    RT ACC   RT_log
+##    &lt;chr&gt;   &lt;chr&gt;        &lt;fct&gt;    &lt;dbl&gt; &lt;int&gt; &lt;lgl&gt;  &lt;dbl&gt;
+##  1 15345   nihnaxr      FALSE     5.84   945 TRUE    6.85
+##  2 15345   skaep        FALSE     6.03  1046 FALSE   6.95
+##  3 15345   grandparents TRUE     10.3    797 TRUE    6.68
+##  4 15345   sehs         FALSE     5.88  2134 TRUE    7.67
+##  5 15345   cousin       TRUE      5.78   597 TRUE    6.39
+##  6 15345   blowup       TRUE      6.03   716 TRUE    6.57
+##  7 15345   hhehrnzmaxn  FALSE     7.30  1985 TRUE    7.59
+##  8 15345   mantic       TRUE      6.21  1591 TRUE    7.37
+##  9 15345   notable      TRUE      6.82   620 TRUE    6.43
+## 10 15345   prowthihviht FALSE     7.68  1205 TRUE    7.09
+## # … with 2,990 more rows
+```
+
+
+---
+
+# A frequentist linear model
+
+
+```r
+lm_1 &lt;- lmer(
+  log(RT) ~
+    PhonLev +
+    IsWord +
+    PhonLev:IsWord +
+    (1 | Subject),
+  data = mald
+)
+```
+
+---
+
+# A frequentist linear model
+
+
+```r
+summary(lm_1)
+```
+
+```
+## Linear mixed model fit by REML ['lmerMod']
+## Formula: log(RT) ~ PhonLev + IsWord + PhonLev:IsWord + (1 | Subject)
+##    Data: mald
+## 
+## REML criterion at convergence: 647.9
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -8.0939 -0.6469 -0.1746  0.4883  4.1256 
+## 
+## Random effects:
+##  Groups   Name        Variance Std.Dev.
+##  Subject  (Intercept) 0.007429 0.08619 
+##  Residual             0.070268 0.26508 
+## Number of obs: 3000, groups:  Subject, 30
+## 
+## Fixed effects:
+##                      Estimate Std. Error t value
+## (Intercept)          6.617326   0.040724 162.493
+## PhonLev              0.032973   0.005235   6.298
+## IsWordFALSE          0.189964   0.053634   3.542
+## PhonLev:IsWordFALSE -0.010166   0.007437  -1.367
+## 
+## Correlation of Fixed Effects:
+##             (Intr) PhonLv IWFALS
+## PhonLev     -0.907              
+## IsWordFALSE -0.647  0.690       
+## PhL:IWFALSE  0.639 -0.705 -0.983
+```
+
+---
+
+# A frequentist linear model
+
+
+```r
+ggpredict(lm_1, terms = c("PhonLev", "IsWord")) %&gt;%
+  plot()
+```
+
+```
+## Model has log-transformed response. Back-transforming predictions to original response scale. Standard errors are still on the log-scale.
+```
+
+![](index_files/figure-html/lm-1-pred-1.png)&lt;!-- --&gt;
+
+---
+
+# Increase model complexity
+
+**Try it yourself!** Does it work?
+
+
+```r
+lm_2 &lt;- lmer(
+  log(RT) ~
+    PhonLev +
+    IsWord +
+    PhonLev:IsWord +
+    (PhonLev + IsWord | Subject),
+  data = mald
+)
+```
+
+--
+
+
+```
+## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, : Model failed
+## to converge with max|grad| = 0.0969421 (tol = 0.002, component 1)
+```
+
+---
+
+# A Bayesian linear model
+
+
+```r
+brm_1 &lt;- brm(
+  RT ~
+    PhonLev +
+    IsWord +
+    PhonLev:IsWord +
+    (PhonLev + IsWord | Subject),
+  data = mald,
+  # Let's use a lognormal fam, rather than log the RT values
+  family = lognormal()
+)
+```
+
+
+
+---
+
+# A Bayesian linear model
+
+
+```r
+brm_1
+```
+
+```
+## Warning: There were 23 divergent transitions after warmup. Increasing adapt_delta above may
+## help. See http://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup
+```
+
+```
+##  Family: lognormal 
+##   Links: mu = identity; sigma = identity 
+## Formula: RT ~ PhonLev + IsWord + PhonLev:IsWord + (PhonLev + IsWord | Subject) 
+##    Data: mald (Number of observations: 3000) 
+##   Draws: 4 chains, each with iter = 1000; warmup = 0; thin = 1;
+##          total post-warmup draws = 4000
+## 
+## Group-Level Effects: 
+## ~Subject (Number of levels: 30) 
+##                            Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+## sd(Intercept)                  0.09      0.03     0.05     0.15 1.00     2058     2564
+## sd(PhonLev)                    0.01      0.00     0.00     0.01 1.01      514     1445
+## sd(IsWordFALSE)                0.09      0.02     0.06     0.12 1.00     1847     2467
+## cor(Intercept,PhonLev)        -0.36      0.46    -0.93     0.71 1.00     2586     2268
+## cor(Intercept,IsWordFALSE)     0.24      0.29    -0.32     0.77 1.01      745     1219
+## cor(PhonLev,IsWordFALSE)      -0.32      0.45    -0.94     0.69 1.01      344      680
+## 
+## Population-Level Effects: 
+##                     Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+## Intercept               6.62      0.04     6.54     6.69 1.00     3360     3089
+## PhonLev                 0.03      0.01     0.02     0.04 1.00     4192     3588
+## IsWordFALSE             0.19      0.05     0.08     0.30 1.00     3544     2574
+## PhonLev:IsWordFALSE    -0.01      0.01    -0.02     0.00 1.00     3826     2858
+## 
+## Family Specific Parameters: 
+##       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+## sigma     0.26      0.00     0.26     0.27 1.00     5708     2550
+## 
+## Draws were sampled using sample(hmc). For each parameter, Bulk_ESS
+## and Tail_ESS are effective sample size measures, and Rhat is the potential
+## scale reduction factor on split chains (at convergence, Rhat = 1).
+```
+
+---
+
+# A Bayesian linear model
+
+
+```r
+conditional_effects(brm_1, effects = "PhonLev:IsWord")
+```
+
+![](index_files/figure-html/brm-1-cond-1.png)&lt;!-- --&gt;
+
+---
+
+# Let's start small
+
+**Try it yourself!**
+
+
+```r
+brm_2 &lt;- brm(
+  RT ~
+    IsWord,
+  data = mald,
+  family = lognormal(),
+  # Save model output to file
+  file = "./data/rds/brm_2.rds"
+)
+```
+
+---
+
+class: center middle reverse
+
+# [MCMC what?](https://chi-feng.github.io/mcmc-demo/app.html)
+
+???
+
+More on MCMC: http://elevanth.org/blog/2017/11/28/build-a-better-markov-chain/
+
+---
+
+# Let's start small
+
+
+```r
+brm_2 &lt;- brm(
+  RT ~
+    IsWord,
+  data = mald,
+  # Probability distribution of the OUTCOME
+  family = lognormal(),
+  # TECHNICAL STUFF
+  # Save model output to file
+  file = "./data/rds/brm_2.rds"
+  # Number of chains
+  chains = 4,
+  # Number of iterations per chain
+  iter = 2000,
+  # Number of cores to use (each chain is run on each core)
+  cores = 4
+)
+```
+
+- `chains`: Number of MCMC chains to be run.
+
+- `iter`: Number of iterations per MCMC chain.
+
+- `cores`: Number of cores to use for running the MCMC chains.
+
+  - You can find out how many cores your laptop has with `parallel::detectCores()`
+
+---
+
+# Let's start small
+
+
+```r
+brm_2
+```
+
+```
+##  Family: lognormal 
+##   Links: mu = identity; sigma = identity 
+## Formula: RT ~ IsWord 
+##    Data: mald (Number of observations: 3000) 
+##   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
+##          total post-warmup draws = 4000
+## 
+## Population-Level Effects: 
+##             Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+## Intercept       6.85      0.01     6.84     6.86 1.00     4017     2784
+## IsWordFALSE     0.12      0.01     0.10     0.14 1.00     3536     2831
+## 
+## Family Specific Parameters: 
+##       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+## sigma     0.28      0.00     0.27     0.29 1.00     3171     2897
+## 
+## Draws were sampled using sampling(NUTS). For each parameter, Bulk_ESS
+## and Tail_ESS are effective sample size measures, and Rhat is the potential
+## scale reduction factor on split chains (at convergence, Rhat = 1).
+```
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script src="macros.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
