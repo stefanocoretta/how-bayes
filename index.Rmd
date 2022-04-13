@@ -1,9 +1,8 @@
 ---
-title: "Presentation Ninja"
-subtitle: "⚔<br/>with xaringan"
-author: "Yihui Xie"
-institute: "RStudio, PBC"
-date: "2016/12/12 (updated: `r Sys.Date()`)"
+title: "How to Bayes"
+author: "Stefano Coretta"
+institute: "UoE LEL"
+date: "`r Sys.Date()`"
 output:
   xaringan::moon_reader:
     lib_dir: libs
@@ -12,20 +11,25 @@ output:
       - ipa-fonts.css
       - custom.css
     nature:
-      highlightStyle: github
+      highlightStyle: agate
+      highlightLanguage: r
       highlightLines: true
       countIncrementalSlides: false
       beforeInit: "macros.js"
+fontsize: 14
 ---
 
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, out.height = "500px", dpi = 300, fig.align = "center", fig.width = 7, fig.height = 5)
 knitr::opts_knit$set(root.dir = here::here())
 library(tidyverse)
+theme_set(theme_light())
 library(ggeffects)
 library(lme4)
 library(brms)
+library(tidybayes)
+library(bayesplot)
 options(htmltools.dir.version = FALSE)
 xaringanExtra::use_xaringan_extra(c("panelset", "tachyons"))
 ```
@@ -87,15 +91,15 @@ lm_1 <- lmer(
 
 # A frequentist linear model
 
-```{r lm-1-sum}
-summary(lm_1)
+```{r lm-1-sum, echo=FALSE}
+summary(lm_1, correlation= FALSE)
 ```
 
 ---
 
 # A frequentist linear model
 
-```{r lm-1-pred}
+```{r lm-1-pred, echo=FALSE, message=FALSE}
 ggpredict(lm_1, terms = c("PhonLev", "IsWord")) %>%
   plot()
 ```
@@ -169,15 +173,17 @@ brm_1 <- brm(
 
 # A Bayesian linear model
 
-```{r brm-1-sum}
+.medium[
+```{r brm-1-sum, echo=FALSE, warning=FALSE}
 brm_1
 ```
+]
 
 ---
 
 # A Bayesian linear model
 
-```{r brm-1-cond}
+```{r brm-1-cond, echo=FALSE}
 conditional_effects(brm_1, effects = "PhonLev:IsWord")
 ```
 
@@ -202,7 +208,7 @@ brm_2 <- brm(
 
 class: center middle reverse
 
-# [MCMC what?](https://chi-feng.github.io/mcmc-demo/app.html)
+.f1[[MCMC what?](https://chi-feng.github.io/mcmc-demo/app.html)]
 
 ???
 
@@ -212,25 +218,33 @@ More on MCMC: http://elevanth.org/blog/2017/11/28/build-a-better-markov-chain/
 
 # Let's start small
 
+.pull-left[
 ```{r brm-2-explain, eval=FALSE}
 brm_2 <- brm(
   RT ~
     IsWord,
   data = mald,
-  # Probability distribution of the OUTCOME
+  # Probability distribution
+  # of the OUTCOME
   family = lognormal(),
   # TECHNICAL STUFF
-  # Save model output to file
-  file = "./data/rds/brm_2.rds"
+  # Save model output
+  # to file
+  file = "./data/rds/brm_2.rds",
   # Number of chains
-  chains = 4,
-  # Number of iterations per chain
+  chains = 4, 
+  # Number of iterations per
+  # chain
   iter = 2000,
-  # Number of cores to use (each chain is run on each core)
+  # Number of cores to use
   cores = 4
 )
 ```
+]
 
+--
+
+.pull-right[
 - `chains`: Number of MCMC chains to be run.
 
 - `iter`: Number of iterations per MCMC chain.
@@ -238,12 +252,126 @@ brm_2 <- brm(
 - `cores`: Number of cores to use for running the MCMC chains.
 
   - You can find out how many cores your laptop has with `parallel::detectCores()`
+]
 
 ---
 
 # Let's start small
 
+.big[
 ```{r brm-2-sum}
 brm_2
 ```
+]
 
+---
+
+# Quick plot
+
+```{r brm-2-plot}
+plot(brm_2)
+```
+
+---
+
+# Get variables
+
+To list all variable names in a model, use:
+
+```{r brm-2-vars}
+variables(brm_2)
+```
+
+---
+
+# Get MCMC draws
+
+You can easily extract the MCMC draws:
+
+```{r brm-2-draws}
+brm_2 %>%
+  gather_draws(`b_.*`, regex = TRUE)
+```
+
+
+
+---
+
+# Posterior distributions
+
+Now you can plot the draws using ggplot2.
+
+```{r brm-2-int-g}
+g_1 <- brm_2 %>%
+  gather_draws(b_Intercept) %>%
+  ggplot(aes(.value)) +
+  stat_halfeye(fill = "#214d65") +
+  scale_x_continuous(breaks = seq(6, 7, by = 0.01)) +
+  labs(title = "Intercept")
+```
+
+---
+
+# Posterior distributions
+
+```{r brm-2-int, echo=FALSE}
+g_1
+```
+
+
+
+---
+
+# Posterior distributions
+
+```{r brm-2-isword-g}
+g_2 <- brm_2 %>%
+  gather_draws(b_IsWordFALSE) %>%
+  ggplot(aes(.value)) +
+  stat_halfeye(fill = "#624B27") +
+  scale_x_continuous(breaks = seq(0, 1, by = 0.01)) +
+  labs(title = "Effect of IsWord = FALSE")
+```
+
+---
+
+# Posterior distributions
+
+```{r brm-2-isword, echo=FALSE}
+g_2
+```
+
+
+---
+
+# MCMC chains diagnostics
+
+```{r brm-2-chain-1, message=FALSE}
+as.array(brm_2) %>%
+  mcmc_trace("b_IsWordFALSE", np = nuts_params(brm_2))
+```
+
+
+---
+
+# MCMC chain divergences
+
+.center[
+![](img/trace_c.png)
+]
+
+???
+
+Picture from <https://www.rdatagen.net/post/diagnosing-and-dealing-with-estimation-issues-in-the-bayesian-meta-analysis/>.
+
+---
+
+# $\hat{R}$ and Effective Sample Size
+
+```{r brm-2-diag}
+brm_2
+```
+
+---
+
+# Interpret the output
