@@ -477,6 +477,16 @@
       "Hash": "36b67b5adf57b292923f5659f5f0c853",
       "Requirements": []
     },
+    "datawizard": {
+      "Package": "datawizard",
+      "Version": "0.4.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "80574954d62f0764830aa79144e82344",
+      "Requirements": [
+        "insight"
+      ]
+    },
     "dbplyr": {
       "Package": "dbplyr",
       "Version": "2.1.1",
@@ -738,10 +748,10 @@
     },
     "ggeffects": {
       "Package": "ggeffects",
-      "Version": "1.1.1",
+      "Version": "1.1.2",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "c5c7376ceca707bebc485955b7e07ffc",
+      "Hash": "e8812da7ef973b9b0a3f547223ea5126",
       "Requirements": [
         "MASS",
         "insight",
@@ -1785,11 +1795,12 @@
     },
     "sjlabelled": {
       "Package": "sjlabelled",
-      "Version": "1.1.8",
+      "Version": "1.2.0",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "60437c5938a8d6abb1ac3b530bab024e",
+      "Hash": "4bd18166ef8ca74aeec74ad295dfe77f",
       "Requirements": [
+        "datawizard",
         "insight"
       ]
     },
