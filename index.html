@@ -4,14 +4,14 @@
     <title>How to Bayes</title>
     <meta charset="utf-8" />
     <meta name="author" content="Stefano Coretta" />
-    <meta name="date" content="2022-04-13" />
+    <meta name="date" content="2022-04-18" />
     <script src="libs/header-attrs/header-attrs.js"></script>
     <link href="libs/remark-css/default.css" rel="stylesheet" />
     <link href="libs/tachyons/tachyons.min.css" rel="stylesheet" />
     <link href="libs/panelset/panelset.css" rel="stylesheet" />
     <script src="libs/panelset/panelset.js"></script>
-    <link rel="stylesheet" href="ipa-fonts.css" type="text/css" />
-    <link rel="stylesheet" href="custom.css" type="text/css" />
+    <link rel="stylesheet" href="libs/ipa-fonts.css" type="text/css" />
+    <link rel="stylesheet" href="libs/custom.css" type="text/css" />
   </head>
   <body>
     <textarea id="source">
@@ -20,7 +20,7 @@ class: center, middle, inverse, title-slide
 # How to Bayes
 ### Stefano Coretta
 ### UoE LEL
-### 2022-04-13
+### 2022-04-18
 
 ---
 
@@ -30,22 +30,57 @@ class: center, middle, inverse, title-slide
 
 
 
+class: right
+
+
+&lt;br&gt;
+&lt;br&gt;
+&lt;br&gt;
+&lt;br&gt;
+
+![](img/One_Ring_inscription.svg.png)
+
+.f2[
+One **model** to rule them all.&lt;br&gt;
+One **model** to find them.&lt;br&gt;
+One **model** to bring them all&lt;br&gt;
+And in the darkness bind them.
+]
+
+--
+
+.f5[(No, I couln't translate 'model' into Black Speech, alas...)]
+
+---
+
+class: center middle
+
+# Now enter The Linear Model
+
+&lt;iframe src="https://giphy.com/embed/l4FGCymGGNTZVZwtO" width="480" height="200" frameBorder="0" class="giphy-embed" allowFullScreen&gt;&lt;/iframe&gt;&lt;p&gt;
+
+---
+
+class: center middle
+
+# Now enter The Bayesian Linear Model
+
+&lt;iframe src="https://giphy.com/embed/3ov9jG4eqz9k3XXsU8" width="480" height="480" frameBorder="0" class="giphy-embed" allowFullScreen&gt;&lt;/iframe&gt;&lt;p&gt;
+
+---
+
 # All about the Bayes
 
-- Within the NHST (Frequentist) framework, the main analysis output is:
+- Within the **NHST (Frequentist) framework**, the main analysis output is:
 
   - **Point estimates** of predictors' parameters (with standard error).
   - **P-values**.
 
-- Within the Bayesian framework, the main analysis output is:
+--
+
+- Within the **Bayesian framework**, the main analysis output is:
 
   - **Probability distributions** of predictors' parameters.
-
----
-
-# All about the Bayes
-
-Images of NHST vs Bayes output.
 
 ---
 
@@ -156,9 +191,15 @@ lm_2 &lt;- lmer(
 
 
 ```
-## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, : Model failed to converge with max|grad| =
-## 0.0969421 (tol = 0.002, component 1)
+## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+## Model failed to converge with max|grad| = 0.0969421 (tol = 0.002, component 1)
 ```
+
+---
+
+class: center middle inverse
+
+.f1[Let's go Bayesian!]
 
 ---
 
@@ -191,18 +232,25 @@ brm_1 &lt;- brm(
 ##   Links: mu = identity; sigma = identity 
 ## Formula: RT ~ PhonLev + IsWord + PhonLev:IsWord + (PhonLev + IsWord | Subject) 
 ##    Data: mald (Number of observations: 3000) 
-##   Draws: 4 chains, each with iter = 1000; warmup = 0; thin = 1;
+##   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
 ##          total post-warmup draws = 4000
 ## 
 ## Group-Level Effects: 
 ## ~Subject (Number of levels: 30) 
-##                            Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## sd(Intercept)                  0.09      0.03     0.05     0.15 1.00     2058     2564
-## sd(PhonLev)                    0.01      0.00     0.00     0.01 1.01      514     1445
-## sd(IsWordFALSE)                0.09      0.02     0.06     0.12 1.00     1847     2467
-## cor(Intercept,PhonLev)        -0.36      0.46    -0.93     0.71 1.00     2586     2268
-## cor(Intercept,IsWordFALSE)     0.24      0.29    -0.32     0.77 1.01      745     1219
-## cor(PhonLev,IsWordFALSE)      -0.32      0.45    -0.94     0.69 1.01      344      680
+##                            Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS
+## sd(Intercept)                  0.09      0.03     0.05     0.15 1.00     2058
+## sd(PhonLev)                    0.01      0.00     0.00     0.01 1.01      514
+## sd(IsWordFALSE)                0.09      0.02     0.06     0.12 1.00     1847
+## cor(Intercept,PhonLev)        -0.36      0.46    -0.93     0.71 1.00     2586
+## cor(Intercept,IsWordFALSE)     0.24      0.29    -0.32     0.77 1.01      745
+## cor(PhonLev,IsWordFALSE)      -0.32      0.45    -0.94     0.69 1.01      344
+##                            Tail_ESS
+## sd(Intercept)                  2564
+## sd(PhonLev)                    1445
+## sd(IsWordFALSE)                2467
+## cor(Intercept,PhonLev)         2268
+## cor(Intercept,IsWordFALSE)     1219
+## cor(PhonLev,IsWordFALSE)        680
 ## 
 ## Population-Level Effects: 
 ##                     Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
@@ -249,7 +297,7 @@ brm_2 &lt;- brm(
 
 class: center middle reverse
 
-# [MCMC what?](https://chi-feng.github.io/mcmc-demo/app.html)
+.f1[[MCMC what?](https://chi-feng.github.io/mcmc-demo/app.html)]
 
 ???
 
@@ -299,6 +347,8 @@ brm_2 &lt;- brm(
 ---
 
 # Let's start small
+
+How do I interpret the output summary?
 
 .big[
 
@@ -355,14 +405,47 @@ variables(brm_2)
 ## [1] "b_Intercept"   "b_IsWordFALSE" "sigma"         "lp__"
 ```
 
+---
+
+# Get MCMC draws
+
+You can easily extract the MCMC draws:
+
+
+```r
+brm_2 %&gt;%
+  gather_draws(`b_.*`, regex = TRUE)
+```
+
+```
+## # A tibble: 8,000 × 5
+## # Groups:   .variable [2]
+##    .chain .iteration .draw .variable   .value
+##     &lt;int&gt;      &lt;int&gt; &lt;int&gt; &lt;chr&gt;        &lt;dbl&gt;
+##  1      1          1     1 b_Intercept   6.84
+##  2      1          2     2 b_Intercept   6.85
+##  3      1          3     3 b_Intercept   6.85
+##  4      1          4     4 b_Intercept   6.86
+##  5      1          5     5 b_Intercept   6.85
+##  6      1          6     6 b_Intercept   6.85
+##  7      1          7     7 b_Intercept   6.86
+##  8      1          8     8 b_Intercept   6.86
+##  9      1          9     9 b_Intercept   6.86
+## 10      1         10    10 b_Intercept   6.84
+## # … with 7,990 more rows
+```
+
+
 
 ---
 
 # Posterior distributions
 
+Now you can plot the draws using ggplot2.
+
 
 ```r
-g &lt;- brm_2 %&gt;%
+g_1 &lt;- brm_2 %&gt;%
   gather_draws(b_Intercept) %&gt;%
   ggplot(aes(.value)) +
   stat_halfeye(fill = "#214d65") +
@@ -384,7 +467,7 @@ g &lt;- brm_2 %&gt;%
 
 
 ```r
-g &lt;- brm_2 %&gt;%
+g_2 &lt;- brm_2 %&gt;%
   gather_draws(b_IsWordFALSE) %&gt;%
   ggplot(aes(.value)) +
   stat_halfeye(fill = "#624B27") +
@@ -398,15 +481,28 @@ g &lt;- brm_2 %&gt;%
 
 &lt;img src="index_files/figure-html/brm-2-isword-1.png" height="500px" style="display: block; margin: auto;" /&gt;
 
+---
+
+class: center middle inverse
+
+.f1[DIAGNOSTICS]
 
 ---
 
 # MCMC chains diagnostics
 
 
+```r
+as.array(brm_2) %&gt;%
+  mcmc_trace("b_IsWordFALSE", np = nuts_params(brm_2))
+```
+
+&lt;img src="index_files/figure-html/brm-2-chain-1-1.png" height="500px" style="display: block; margin: auto;" /&gt;
+
+
 ---
 
-# Divergences
+# MCMC chain divergences
 
 .center[
 ![](img/trace_c.png)
@@ -415,10 +511,194 @@ g &lt;- brm_2 %&gt;%
 ???
 
 Picture from &lt;https://www.rdatagen.net/post/diagnosing-and-dealing-with-estimation-issues-in-the-bayesian-meta-analysis/&gt;.
+
+---
+
+# `\(\hat{R}\)` and Effective Sample Size
+
+.medium[
+
+```r
+brm_2
+```
+
+```
+##  Family: lognormal 
+##   Links: mu = identity; sigma = identity 
+## Formula: RT ~ IsWord 
+##    Data: mald (Number of observations: 3000) 
+##   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
+##          total post-warmup draws = 4000
+## 
+## Population-Level Effects: 
+##             Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+## Intercept       6.85      0.01     6.84     6.86 1.00     4017     2784
+## IsWordFALSE     0.12      0.01     0.10     0.14 1.00     3536     2831
+## 
+## Family Specific Parameters: 
+##       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+## sigma     0.28      0.00     0.27     0.29 1.00     3171     2897
+## 
+## Draws were sampled using sampling(NUTS). For each parameter, Bulk_ESS
+## and Tail_ESS are effective sample size measures, and Rhat is the potential
+## scale reduction factor on split chains (at convergence, Rhat = 1).
+```
+]
+
+---
+
+# Posterior predictive checks
+
+
+```r
+pp_check(brm_2, ndraws = 100)
+```
+
+&lt;img src="index_files/figure-html/brm-2-pp-1.png" height="500px" style="display: block; margin: auto;" /&gt;
+
+---
+
+class: center middle inverse
+
+.f1[Level up!]
+
+---
+
+# Interactions and group-level effects
+
+
+```r
+brm_1 &lt;- brm(
+  RT ~
+    PhonLev +
+    IsWord +
+    # Interaction
+    PhonLev:IsWord +
+    # Group-level effects
+    (PhonLev + IsWord | Subject),
+  data = mald,
+  family = lognormal(),
+  # Technical stuff
+  backend = "cmdstanr",
+  cores = 4,
+  threads = threading(2),
+  file = "data/rds/brm_1"
+)
+```
+
+---
+
+# Interactions and group-level effects
+
+.medium[
+
+```
+##  Family: lognormal 
+##   Links: mu = identity; sigma = identity 
+## Formula: RT ~ PhonLev + IsWord + PhonLev:IsWord + (PhonLev + IsWord | Subject) 
+##    Data: mald (Number of observations: 3000) 
+##   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
+##          total post-warmup draws = 4000
+## 
+## Group-Level Effects: 
+## ~Subject (Number of levels: 30) 
+##                            Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS
+## sd(Intercept)                  0.09      0.03     0.05     0.15 1.00     2058
+## sd(PhonLev)                    0.01      0.00     0.00     0.01 1.01      514
+## sd(IsWordFALSE)                0.09      0.02     0.06     0.12 1.00     1847
+## cor(Intercept,PhonLev)        -0.36      0.46    -0.93     0.71 1.00     2586
+## cor(Intercept,IsWordFALSE)     0.24      0.29    -0.32     0.77 1.01      745
+## cor(PhonLev,IsWordFALSE)      -0.32      0.45    -0.94     0.69 1.01      344
+##                            Tail_ESS
+## sd(Intercept)                  2564
+## sd(PhonLev)                    1445
+## sd(IsWordFALSE)                2467
+## cor(Intercept,PhonLev)         2268
+## cor(Intercept,IsWordFALSE)     1219
+## cor(PhonLev,IsWordFALSE)        680
+## 
+## Population-Level Effects: 
+##                     Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+## Intercept               6.62      0.04     6.54     6.69 1.00     3360     3089
+## PhonLev                 0.03      0.01     0.02     0.04 1.00     4192     3588
+## IsWordFALSE             0.19      0.05     0.08     0.30 1.00     3544     2574
+## PhonLev:IsWordFALSE    -0.01      0.01    -0.02     0.00 1.00     3826     2858
+## 
+## Family Specific Parameters: 
+##       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+## sigma     0.26      0.00     0.26     0.27 1.00     5708     2550
+## 
+## Draws were sampled using sample(hmc). For each parameter, Bulk_ESS
+## and Tail_ESS are effective sample size measures, and Rhat is the potential
+## scale reduction factor on split chains (at convergence, Rhat = 1).
+```
+]
+
+---
+
+# Interactions
+
+
+```r
+conditional_effects(brm_1, effects = "PhonLev:IsWord")
+```
+
+&lt;img src="index_files/figure-html/brm-1-bis-cond-1.png" height="500px" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Interactions
+
+
+```r
+conditional_effects(
+  brm_1, effects = "PhonLev:IsWord",
+  spaghetti = TRUE, ndraws = 100
+) %&gt;%
+  plot(spaghetti_args = c(size = 2, alpha = 1))
+```
+
+---
+
+# Interactions
+
+&lt;img src="index_files/figure-html/brm-1-bis-cond-3-1.png" height="500px" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Group-level effects
+
+
+```
+## Warning: `gather_()` was deprecated in tidyr 1.2.0.
+## Please use `gather()` instead.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was generated.
+```
+
+&lt;img src="index_files/figure-html/brm-1-shrunk-intercept-1.png" height="500px" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Group-level effects
+
+&lt;img src="index_files/figure-html/brm-1-shrunk-isword-1.png" height="500px" style="display: block; margin: auto;" /&gt;
+
+---
+
+# We don't talk about Priors, no no no...
+
+![](img/We_Dont_Talk_About_Bruno.jpg)
+
+---
+
+class: middle center inverse
+
+.f1[QUESTIONS?]
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
-<script src="macros.js"></script>
+<script src="libs/macros.js"></script>
 <script>var slideshow = remark.create({
 "highlightStyle": "agate",
 "highlightLanguage": "r",

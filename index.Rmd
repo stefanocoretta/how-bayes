@@ -8,14 +8,14 @@ output:
     lib_dir: libs
     css:
       - default
-      - ipa-fonts.css
-      - custom.css
+      - libs/ipa-fonts.css
+      - libs/custom.css
     nature:
       highlightStyle: agate
       highlightLanguage: r
       highlightLines: true
       countIncrementalSlides: false
-      beforeInit: "macros.js"
+      beforeInit: "libs/macros.js"
 fontsize: 14
 ---
 
@@ -38,22 +38,57 @@ xaringanExtra::use_xaringan_extra(c("panelset", "tachyons"))
 mald <- readRDS("./data/mald.rds")
 ```
 
-# All about the Bayes
+class: right
 
-- Within the NHST (Frequentist) framework, the main analysis output is:
 
-  - **Point estimates** of predictors' parameters (with standard error).
-  - **P-values**.
+<br>
+<br>
+<br>
+<br>
 
-- Within the Bayesian framework, the main analysis output is:
+![](img/One_Ring_inscription.svg.png)
 
-  - **Probability distributions** of predictors' parameters.
+.f2[
+One **model** to rule them all.<br>
+One **model** to find them.<br>
+One **model** to bring them all<br>
+And in the darkness bind them.
+]
+
+--
+
+.f5[(No, I couln't translate 'model' into Black Speech, alas...)]
+
+---
+
+class: center middle
+
+# Now enter The Linear Model
+
+<iframe src="https://giphy.com/embed/l4FGCymGGNTZVZwtO" width="480" height="200" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p>
+
+---
+
+class: center middle
+
+# Now enter The Bayesian Linear Model
+
+<iframe src="https://giphy.com/embed/3ov9jG4eqz9k3XXsU8" width="480" height="480" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p>
 
 ---
 
 # All about the Bayes
 
-Images of NHST vs Bayes output.
+- Within the **NHST (Frequentist) framework**, the main analysis output is:
+
+  - **Point estimates** of predictors' parameters (with standard error).
+  - **P-values**.
+
+--
+
+- Within the **Bayesian framework**, the main analysis output is:
+
+  - **Probability distributions** of predictors' parameters.
 
 ---
 
@@ -133,6 +168,12 @@ lm_2 <- lmer(
   data = mald
 )
 ```
+
+---
+
+class: center middle inverse
+
+.f1[Let's go Bayesian!]
 
 ---
 
@@ -258,6 +299,8 @@ brm_2 <- brm(
 
 # Let's start small
 
+How do I interpret the output summary?
+
 .big[
 ```{r brm-2-sum}
 brm_2
@@ -341,6 +384,11 @@ g_2 <- brm_2 %>%
 g_2
 ```
 
+---
+
+class: center middle inverse
+
+.f1[DIAGNOSTICS]
 
 ---
 
@@ -368,10 +416,153 @@ Picture from <https://www.rdatagen.net/post/diagnosing-and-dealing-with-estimati
 
 # $\hat{R}$ and Effective Sample Size
 
+.medium[
 ```{r brm-2-diag}
 brm_2
+```
+]
+
+---
+
+# Posterior predictive checks
+
+```{r brm-2-pp}
+pp_check(brm_2, ndraws = 100)
 ```
 
 ---
 
-# Interpret the output
+class: center middle inverse
+
+.f1[Level up!]
+
+---
+
+# Interactions and group-level effects
+
+```{r brm-1-bis}
+brm_1 <- brm(
+  RT ~
+    PhonLev +
+    IsWord +
+    # Interaction
+    PhonLev:IsWord +
+    # Group-level effects
+    (PhonLev + IsWord | Subject),
+  data = mald,
+  family = lognormal(),
+  # Technical stuff
+  backend = "cmdstanr",
+  cores = 4,
+  threads = threading(2),
+  file = "data/rds/brm_1"
+)
+```
+
+---
+
+# Interactions and group-level effects
+
+.medium[
+```{r brm-1-bis-sum, echo=FALSE, warning=FALSE}
+brm_1
+```
+]
+
+---
+
+# Interactions
+
+```{r brm-1-bis-cond}
+conditional_effects(brm_1, effects = "PhonLev:IsWord")
+```
+
+---
+
+# Interactions
+
+```{r brm-1-bis-cond-2, eval=FALSE}
+conditional_effects(
+  brm_1, effects = "PhonLev:IsWord",
+  spaghetti = TRUE, ndraws = 100
+) %>%
+  plot(spaghetti_args = c(size = 2, alpha = 1))
+```
+
+---
+
+# Interactions
+
+```{r brm-1-bis-cond-3, echo=FALSE}
+conditional_effects(
+  brm_1, effects = "PhonLev:IsWord",
+  spaghetti = TRUE, ndraws = 100
+) %>%
+  plot(spaghetti_args = c(size = 2, alpha = 1))
+```
+
+---
+
+# Group-level effects
+
+```{r shrunk, echo=FALSE}
+brm_1_shrunk <- brm_1 %>%
+  spread_draws(b_IsWordFALSE, b_PhonLev, r_Subject[Subject,term]) %>%
+  mean_qi() %>%
+  mutate(source = "meta-analysis")
+
+original <- mald %>%
+  group_by(Subject) %>%
+  mutate(
+    mean_RT = mean(log(RT)),
+    sd_RT = sd(log(RT)),
+    lower = mean_RT - 1.96 * sd_RT,
+    upper = mean_RT + 1.96 * sd_RT
+  )
+```
+
+```{r brm-1-shrunk-intercept, echo=FALSE}
+brm_1_shrunk %>%
+  filter(term == "Intercept") %>%
+  ggplot(aes(r_Subject, reorder(as.character(Subject), r_Subject))) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  geom_point(size = 4) +
+  geom_errorbarh(aes(xmin = r_Subject.lower, xmax = r_Subject.upper)) +
+  geom_point(data = original, aes(mean_RT - mean(log(RT)), Subject), colour = "red", size = 3) +
+  labs(
+    title = "By-subject conditional mean for Intercept",
+    x = "Conditional mean",
+    y = "Subject",
+    caption = str_wrap("The red dots mark the by-subject mean log(RT) from the raw data.")
+  )
+```
+
+---
+
+# Group-level effects
+
+```{r brm-1-shrunk-isword, echo=FALSE}
+brm_1_shrunk %>%
+  filter(term == "IsWordFALSE") %>%
+  ggplot(aes(r_Subject, reorder(as.character(Subject), r_Subject))) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  geom_point(size = 4) +
+  geom_errorbarh(aes(xmin = r_Subject.lower, xmax = r_Subject.upper)) +
+  labs(
+    title = "By-subject conditional mean for IsWord = FALSE",
+    x = "Conditional mean (log-odds)",
+    y = "Subject"
+  )
+```
+
+---
+
+# We don't talk about Priors, no no no...
+
+![](img/We_Dont_Talk_About_Bruno.jpg)
+
+---
+
+class: middle center inverse
+
+.f1[QUESTIONS?]
