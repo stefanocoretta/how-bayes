@@ -55,6 +55,7 @@ configuration.
 When the installation is done, run the following command in the console:
 
 ``` r
+renv::install("stan-dev/cmdstanr")
 cmdstanr::install_cmdstan(cores = parallel::detectCores(), overwrite = TRUE)
 ```
 
