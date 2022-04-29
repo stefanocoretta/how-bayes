@@ -38,19 +38,32 @@ archive and place the folder in a convenient location.
 
 ## Installation
 
-Now you will need to install a few packages.
+Now you will need to install a few packages and extra software.
 
-To do so, simply **double click** on the `how-bayes.Rproj` file, which
+### Install the C++ toolchain
+
+Some of the software requires a working C++ toolchain for compilation.
+
+You can find information on how to set up the C++ toolchain at this address: <https://mc-stan.org/docs/2_29/cmdstan-guide/cmdstan-installation.html#installing-the-c-toolchain>.
+
+Follow the instructions for your operating system.
+
+### Install the R packages
+
+Double click on the `how-bayes.Rproj` file, which
 will open RStudio.
 
 Then, run the following command in the console:
 
 ``` r
+install.packages("renv")
 renv::restore(prompt = FALSE)
 ```
 
 It will take several minutes, depending on your system and
 configuration.
+
+### Install cmdstanr and CmdStan
 
 When the installation is done, run the following command in the console:
 
@@ -62,7 +75,7 @@ cmdstanr::install_cmdstan(cores = parallel::detectCores(), overwrite = TRUE)
 This will install the `cmdstanr` back-end, which allows R and Stan (the
 software behind Bayesian computation) to communicate with each other.
 
-If you get asked about installing extra software, depending on your
+If at any point you get asked about installing extra software, depending on your
 system, please do so.
 
 ## Troubleshoot
